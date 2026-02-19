@@ -4,6 +4,8 @@
 
   <PropertyGroup>
 
+    <VisualStudioVersion>17.0</VisualStudioVersion>
+
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
 
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -141,6 +143,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\VSSDK\Microsoft.VsSDK.targets')" />
 
 </Project>
+
 
 
 
