@@ -7,10 +7,8 @@
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,16.0)">
-      <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
     <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[15.0,16.0)">
-      <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
   </Installation>
   <Prerequisites>
@@ -20,3 +18,4 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ClassSummaryInline" Path="|%CurrentProject%|" />
   </Assets>
 </PackageManifest>
+
