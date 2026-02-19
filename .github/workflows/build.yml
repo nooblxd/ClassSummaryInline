@@ -1,0 +1,47 @@
+
+name: Build VSIX (VS2017 Compatible)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore
+        shell: pwsh
+        run: |
+          nuget restore .\ClassSummaryInline\ClassSummaryInline.csproj -NonInteractive
+
+      - name: Build Release
+        shell: pwsh
+        run: |
+          msbuild .\ClassSummaryInline\ClassSummaryInline.csproj /t:Rebuild /p:Configuration=Release /m
+
+      - name: Package VSIX
+        shell: pwsh
+        run: |
+          $vsix = Get-ChildItem -Recurse -Filter *.vsix -ErrorAction SilentlyContinue
+          if (-not $vsix) {
+            # VSIX from MEF project is placed under bin/Release automatically by VsSDK build
+            $candidate = Join-Path (Resolve-Path .\ClassSummaryInline).Path 'bin/Release'
+            if (Test-Path $candidate) { $vsix = Get-ChildItem -Path $candidate -Filter *.vsix -Recurse }
+          }
+          if (-not $vsix) { throw 'VSIX not found after build.' }
+          echo "Found VSIX: $($vsix[0].FullName)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClassSummaryInline_vsix
+          path: |
+            ClassSummaryInline/bin/Release/*.vsix
+            **/*.vsix
