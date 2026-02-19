@@ -1,47 +1,61 @@
-
-name: Build VSIX (VS2017 Compatible)
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main, master ]
-
-jobs:
-  build:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Restore
-        shell: pwsh
-        run: |
-          nuget restore .\ClassSummaryInline\ClassSummaryInline.csproj -NonInteractive
-
-      - name: Build Release
-        shell: pwsh
-        run: |
-          msbuild .\ClassSummaryInline\ClassSummaryInline.csproj /t:Rebuild /p:Configuration=Release /m
-
-      - name: Package VSIX
-        shell: pwsh
-        run: |
-          $vsix = Get-ChildItem -Recurse -Filter *.vsix -ErrorAction SilentlyContinue
-          if (-not $vsix) {
-            # VSIX from MEF project is placed under bin/Release automatically by VsSDK build
-            $candidate = Join-Path (Resolve-Path .\ClassSummaryInline).Path 'bin/Release'
-            if (Test-Path $candidate) { $vsix = Get-ChildItem -Path $candidate -Filter *.vsix -Recurse }
-          }
-          if (-not $vsix) { throw 'VSIX not found after build.' }
-          echo "Found VSIX: $($vsix[0].FullName)"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ClassSummaryInline_vsix
-          path: |
-            ClassSummaryInline/bin/Release/*.vsix
-            **/*.vsix
+name: Build VSIX (VS2017 Compatible)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # —— 可选保险：如你的项目仍是 v4.6.1，请取消下面 3 行注释安装 DevPack —— 
+      # - name: Install .NET Framework 4.6.1 Developer Pack (optional)
+      #   shell: pwsh
+      #   run: choco install netfx-4.6.1-devpack -y --no-progress
+
+      # 清洗 VSIX 清单：去 BOM + 去文件开头空白，避免 VSSDK1088/1001
+      - name: Sanitize VSIX manifest (strip BOM & leading whitespace)
+        shell: pwsh
+        run: |
+          $p = "ClassSummaryInline/source.extension.vsixmanifest"
+          if (Test-Path $p) {
+            $bytes = [System.IO.File]::ReadAllBytes($p)
+            if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+              [System.IO.File]::WriteAllBytes($p, $bytes[3..($bytes.Length-1)])
+            }
+            $text = Get-Content $p -Raw
+            $text = $text.TrimStart()
+            Set-Content -Path $p -Value $text -NoNewline -Encoding utf8
+          }
+
+      # 还原（对 PackageReference 项目一般可省，但保持一步稳妥）
+      - name: Restore
+        shell: pwsh
+        run: nuget restore .\ClassSummaryInline\ClassSummaryInline.csproj -NonInteractive
+
+      # 关键：指定 VS 版本=17.0（VS2022），并 Clean+Rebuild
+      - name: Build Release
+        shell: pwsh
+        run: |
+          msbuild .\ClassSummaryInline\ClassSummaryInline.csproj `
+            /t:Clean,Rebuild `
+            /p:Configuration=Release `
+            /p:VisualStudioVersion=17.0 `
+            /m /v:m
+
+      # 上传 VSIX
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClassSummaryInline_vsix
+          path: |
+            ClassSummaryInline/bin/Release/*.vsix
+            **/*.vsix
