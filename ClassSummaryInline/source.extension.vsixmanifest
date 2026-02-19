@@ -20,4 +20,3 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ClassSummaryInline" Path="|%CurrentProject%|" />
   </Assets>
 </PackageManifest>
-``
