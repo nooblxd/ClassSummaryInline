@@ -118,7 +118,7 @@
 
   <ItemGroup>
 
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.9.3039" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" PrivateAssets="all" />
 
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="15.0.28010.2048" />
 
@@ -141,6 +141,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\VSSDK\Microsoft.VsSDK.targets')" />
 
 </Project>
+
 
 
 
